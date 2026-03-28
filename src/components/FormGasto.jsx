@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { FaTag, FaMoneyBill, FaCalendar, FaUser } from "react-icons/fa";
+import { Tag, DollarSign, Calendar, User, CreditCard } from "lucide-react";
+import { categorias } from "../data/categoria";
 
-function FormGasto({ onAdd, pessoas, setPessoaSelecionada }) {
+function FormGasto({ onAdd, pessoas, onSelectPessoa }) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [pessoa, setPessoa] = useState("");
-  const [data, setData] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [data, setData] = useState(new Date().toISOString().split("T")[0]);
   const [metodo, setMetodo] = useState("Cartão");
   const [categoria, setCategoria] = useState("Alimentação");
 
@@ -31,13 +30,14 @@ function FormGasto({ onAdd, pessoas, setPessoaSelecionada }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-
+    <form onSubmit={handleSubmit} className="space-y-4">
       {/* Descrição */}
-      <div className="flex items-center border border-gray-200 rounded-xl p-2 focus-within:ring-2 focus-within:ring-purple-500">
-        <FaTag className="text-gray-400 mx-2" />
+      <div className="flex items-center bg-gray-50 rounded-xl p-3 focus-within:ring-2 focus-within:ring-purple-500 transition">
+        <div className="bg-purple-100 p-2 rounded-lg mr-2">
+          <Tag className="w-4 h-4 text-purple-600" />
+        </div>
         <input
-          className="w-full outline-none"
+          className="w-full bg-transparent outline-none text-sm"
           placeholder="Descrição"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
@@ -45,75 +45,98 @@ function FormGasto({ onAdd, pessoas, setPessoaSelecionada }) {
       </div>
 
       {/* Valor */}
-      <div className="flex items-center border border-gray-200 rounded-xl p-2 focus-within:ring-2 focus-within:ring-purple-500">
-        <FaMoneyBill className="text-green-500 mx-2" />
+      <div className="flex items-center bg-gray-50 rounded-xl p-3 focus-within:ring-2 focus-within:ring-green-500 transition">
+        <div className="bg-green-100 p-2 rounded-lg mr-2">
+          <DollarSign className="w-4 h-4 text-green-600" />
+        </div>
         <input
           type="number"
           placeholder="Valor"
-          className="w-full outline-none"
+          className="w-full bg-transparent outline-none text-sm"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
         />
       </div>
 
       {/* Data */}
-      <div className="flex items-center border border-gray-200 rounded-xl p-2">
-        <FaCalendar className="text-gray-400 mx-2" />
+      <div className="flex items-center bg-gray-50 rounded-xl p-3">
+        <div className="bg-gray-200 p-2 rounded-lg mr-2">
+          <Calendar className="w-4 h-4 text-gray-600" />
+        </div>
         <input
           type="date"
-          className="w-full outline-none"
+          className="w-full bg-transparent outline-none text-sm"
           value={data}
           onChange={(e) => setData(e.target.value)}
         />
       </div>
 
       {/* Pessoa */}
-      <div className="flex items-center border border-gray-200 rounded-xl p-2">
-        <FaUser className="text-gray-400 mx-2" />
+      <div className="flex items-center bg-gray-50 rounded-xl p-3">
+        <div className="bg-blue-100 p-2 rounded-lg mr-2">
+          <User className="w-4 h-4 text-blue-600" />
+        </div>
         <select
           value={pessoa}
           onChange={(e) => {
             const valor = e.target.value;
             setPessoa(valor);
-            setPessoaSelecionada(valor); // 🔥 AGORA FUNCIONA
+            onSelectPessoa(valor);
           }}
-          className="w-full outline-none"
+          className="w-full bg-transparent outline-none text-sm"
         >
           <option value="">Pessoa</option>
           {pessoas.map((p, i) => (
-            <option key={i}>{p}</option>
+            <option key={i} value={p}>
+              {p}
+            </option>
           ))}
         </select>
       </div>
 
       {/* Método */}
-      <select
-        className="w-full p-3 rounded-xl border border-gray-200"
-        value={metodo}
-        onChange={(e) => setMetodo(e.target.value)}
-      >
-        <option>Cartão</option>
-        <option>Pix</option>
-      </select>
+      <div className="flex items-center bg-gray-50 rounded-xl p-3">
+        <div className="bg-purple-100 p-2 rounded-lg mr-2">
+          <CreditCard className="w-4 h-4 text-purple-600" />
+        </div>
+
+        <select
+          className="w-full bg-transparent outline-none text-sm"
+          value={metodo}
+          onChange={(e) => setMetodo(e.target.value)}
+        >
+          <option value="Cartão">Cartão</option>
+          <option value="Pix">Pix</option>
+        </select>
+      </div>
 
       {/* Categoria */}
-      <select
-        className="w-full p-3 rounded-xl border border-gray-200"
-        value={categoria}
-        onChange={(e) => setCategoria(e.target.value)}
-      >
-        <option>Alimentação</option>
-        <option>Restaurante</option>
-        <option>Farmácia</option>
-        <option>Transporte</option>
-        <option>Outros</option>
-      </select>
+      <div className="flex items-center bg-gray-50 rounded-xl p-3">
+        <div className="bg-purple-100 p-2 rounded-lg mr-2">
+          <Tag className="w-4 h-4 text-purple-600" />
+        </div>
+
+        <select
+          className="w-full bg-transparent outline-none text-sm"
+          value={categoria}
+          onChange={(e) => setCategoria(e.target.value)}
+        >
+          {categorias.map((cat) => (
+            <option key={cat.nome} value={cat.nome}>
+              {cat.nome}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Botão */}
-      <button className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:opacity-90 transition text-white p-3 rounded-xl font-semibold shadow-md">
+      <button
+        className="w-full bg-gradient-to-r from-purple-600 to-purple-800 
+    text-white p-3 rounded-xl font-semibold shadow-lg 
+    hover:scale-[1.02] active:scale-[0.98] transition"
+      >
         + Adicionar gasto
       </button>
-
     </form>
   );
 }

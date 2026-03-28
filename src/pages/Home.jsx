@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import FormGasto from "../components/FormGasto";
-import { salvarGastos, carregarGastos, salvarPessoas, carregarPessoas } from "../services/storage";
+import {
+  salvarGastos,
+  carregarGastos,
+  salvarPessoas,
+  carregarPessoas,
+} from "../services/storage";
 import FormPessoa from "../components/FormPessoa";
+import { Pencil, Trash2 } from "lucide-react";
+import { Users } from "lucide-react";
+import Graficos from "../components/Graficos";
+import { categorias } from "../data/categoria";
 
 function Home() {
   const [gastos, setGastos] = useState([]);
@@ -10,7 +19,7 @@ function Home() {
   const [filtro, setFiltro] = useState("");
   const [mes, setMes] = useState("");
   const [pessoaSelecionada, setPessoaSelecionada] = useState("");
-  
+  const [mostrarFiltroPessoa, setMostrarFiltroPessoa] = useState(false);
 
   useEffect(() => {
     setPessoas(carregarPessoas());
@@ -24,7 +33,6 @@ function Home() {
   useEffect(() => {
     salvarGastos(gastos);
   }, [gastos]);
-  
 
   function adicionarPessoa(nome) {
     setPessoas((prev) => [...prev, nome]);
@@ -39,9 +47,7 @@ function Home() {
     const novoNome = prompt("Novo nome:");
     if (!novoNome) return;
 
-    setPessoas((prev) =>
-      prev.map((p, i) => (i === index ? novoNome : p))
-    );
+    setPessoas((prev) => prev.map((p, i) => (i === index ? novoNome : p)));
   }
 
   function adicionarGasto(gasto) {
@@ -52,29 +58,25 @@ function Home() {
     setGastos((prev) => prev.filter((g) => g.id !== id));
   }
 
-  const total = gastos.reduce((acc, g) => acc + g.valor, 0);
-
   const gastosFiltrados = gastos.filter((g) => {
-    const filtroPessoa = !filtro || g.pessoa === filtro;
+    const filtroPessoa =
+      !filtro || g.pessoa.trim().toLowerCase() === filtro.trim().toLowerCase();
+
     const filtroMes = !mes || g.data.startsWith(mes);
     const filtroCategoria = !categoriaFiltro || g.categoria === categoriaFiltro;
+
+    function getCategoriaInfo(nome) {
+      return categorias.find((c) => c.nome === nome);
+    }
 
     return filtroPessoa && filtroMes && filtroCategoria;
   });
 
-  function getCategoriaCor(categoria) {
-    switch (categoria) {
-      case "Alimentação":
-        return "bg-yellow-100 text-yellow-700";
-      case "Restaurante":
-        return "bg-orange-100 text-orange-700";
-      case "Farmácia":
-        return "bg-green-100 text-green-700";
-      case "Transporte":
-        return "bg-blue-100 text-blue-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
+  const total = gastosFiltrados.reduce((acc, g) => acc + g.valor, 0);
+
+  function getCategoriaCor(nome) {
+    const categoria = categorias.find((c) => c.nome === nome);
+    return categoria?.cor || "bg-gray-100 text-gray-700";
   }
 
   function getMetodoCor(metodo) {
@@ -83,21 +85,79 @@ function Home() {
       : "bg-purple-100 text-purple-700";
   }
 
+  function getCategoriaInfo(nome) {
+    return categorias.find((c) => c.nome === nome);
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center p-4">
       <div className="w-full max-w-md space-y-4">
-
         {/* HEADER */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 rounded-3xl shadow-lg">
-          <h1 className="text-2xl font-bold">MyCard 💳</h1>
-          <p className="text-sm opacity-80">Controle de gastos</p>
+        <div className="bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900 text-white p-1 rounded-3xl shadow-lg relative overflow-hidden">
+          {/* Efeito de brilho */}
+          <div className="absolute top-0 left-0 w-full h-full bg-white/10 blur-2xl opacity-20"></div>
 
-          <div className="mt-4">
-            <p className="text-sm">Saldo total</p>
-            <h2 className="text-3xl font-bold">
-              R$ {total.toFixed(2)}
-            </h2>
+          <div className="relative z-10">
+            {/* Topo */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img
+                  src={`${import.meta.env.BASE_URL}LOGO (3).png`}
+                  alt="logo"
+                  className="w-20 h-20"
+                />
+                <h1 className="text-sm font-medium tracking-wide">MyCard</h1>
+              </div>
+            </div>
+
+            {/* Saldo */}
+            <div className="mt-1 text-center">
+              <p className="text-xs opacity-70">Saldo Total</p>
+              <h2 className="text-4xl font-bold tracking-tight">
+                R$ {total.toFixed(2)}
+              </h2>
+            </div>
           </div>
+        </div>
+
+        {/* FILTRO DE PESSOA */}
+        <div className="relative">
+          <button
+            onClick={() => setMostrarFiltroPessoa(!mostrarFiltroPessoa)}
+            className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl text-sm"
+          >
+            <Users className="w-4 h-4 text-gray-500" />
+            <span>{filtro || "Pessoas"}</span>
+          </button>
+
+          {mostrarFiltroPessoa && (
+            <div className="absolute mt-2 w-48 bg-white rounded-2xl shadow-lg p-2 z-50">
+              <button
+                onClick={() => {
+                  setFiltro("");
+                  setMostrarFiltroPessoa(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+              >
+                Todos
+              </button>
+
+              {pessoas.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setFiltro(p);
+                    setMostrarFiltroPessoa(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                    filtro === p ? "bg-purple-100" : "hover:bg-gray-100"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* FORM */}
@@ -107,127 +167,127 @@ function Home() {
           <FormGasto
             onAdd={adicionarGasto}
             pessoas={pessoas}
-            setPessoaSelecionada={setPessoaSelecionada}
+            onSelectPessoa={setPessoaSelecionada}
           />
 
           {/* MINI MENU DA PESSOA */}
           {pessoaSelecionada && (
-  <div className="bg-gray-50 px-3 py-2 rounded-xl flex justify-between items-center mt-2 text-sm">
-    <span>{pessoaSelecionada}</span>
+            <div className="bg-gray-50 px-3 py-2 rounded-xl flex justify-between items-center mt-2 text-sm">
+              <span>{pessoaSelecionada}</span>
 
-    <div className="flex gap-2">
-      <button
-        onClick={() => editarPessoa(pessoas.indexOf(pessoaSelecionada))}
-        className="text-blue-500"
-      >
-        ✏️
-      </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    editarPessoa(pessoas.indexOf(pessoaSelecionada))
+                  }
+                  className="text-blue-500"
+                >
+                  <Pencil className="w-4 h-4 text-blue-500" />
+                </button>
 
-      <button
-        onClick={() => removerPessoa(pessoas.indexOf(pessoaSelecionada))}
-        className="text-red-500"
-      >
-        ❌
-      </button>
-    </div>
-  </div>
-)}
+                <button
+                  onClick={() =>
+                    removerPessoa(pessoas.indexOf(pessoaSelecionada))
+                  }
+                  className="text-red-500"
+                >
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* FILTROS */}
-<div className="bg-white p-4 rounded-3xl shadow-sm space-y-3">
+        <div className="bg-white p-4 rounded-3xl shadow-sm">
+          <h3 className="text-sm font-semibold mb-3">Filtros</h3>
 
-  <p className="text-xs text-gray-400">Filtros</p>
+          <div className="grid grid-cols-2 gap-3">
+            <select
+              onChange={(e) => setCategoriaFiltro(e.target.value)}
+              className="p-2 rounded-xl bg-gray-100 text-sm"
+            >
+              <option value="">Categoria</option>
+              {categorias.map((cat) => (
+                <option key={cat.nome} value={cat.nome}>
+                  {cat.nome}
+                </option>
+              ))}
+            </select>
 
-  {/* 👥 Pessoas */}
-  <div className="flex gap-2 overflow-x-auto">
-    <button
-      onClick={() => setFiltro("")}
-      className={`px-3 py-1 rounded-full text-sm ${
-        filtro === "" ? "bg-purple-600 text-white" : "bg-gray-200"
-      }`}
-    >
-      Todos
-    </button>
+            <select
+              onChange={(e) => setFiltro(e.target.value)}
+              className="p-2 rounded-xl bg-gray-100 text-sm"
+            >
+              <option value="">Pessoa</option>
+              {pessoas.map((p, i) => (
+                <option key={i}>{p}</option>
+              ))}
+            </select>
 
-    {pessoas.map((p, i) => (
-      <button
-        key={i}
-        onClick={() => setFiltro(p)}
-        className={`px-3 py-1 rounded-full text-sm ${
-          filtro === p ? "bg-purple-600 text-white" : "bg-gray-200"
-        }`}
-      >
-        {p}
-      </button>
-    ))}
-  </div>
+            <input
+              type="month"
+              onChange={(e) => setMes(e.target.value)}
+              className="p-2 rounded-xl bg-gray-100 text-sm"
+            />
 
-  {/* 📂 Categorias */}
-  <div className="flex gap-2 overflow-x-auto">
-    {["", "Alimentação", "Restaurante", "Farmácia", "Transporte"].map((cat, i) => (
-      <button
-        key={i}
-        onClick={() => setCategoriaFiltro(cat)}
-        className={`px-3 py-1 rounded-full text-sm ${
-          categoriaFiltro === cat ? "bg-purple-600 text-white" : "bg-gray-200"
-        }`}
-      >
-        {cat || "Todas"}
-      </button>
-    ))}
-  </div>
+            <button className="bg-purple-600 text-white rounded-xl text-sm">
+              Filtrar
+            </button>
+          </div>
+        </div>
 
-  {/* 📅 Mês */}
-  <input
-    type="month"
-    onChange={(e) => setMes(e.target.value)}
-    className="w-full bg-gray-100 px-3 py-2 rounded-xl text-sm"
-  />
-
-</div>
+        <Graficos gastos={gastosFiltrados} />
 
         {/* LISTA */}
         <ul className="space-y-2">
           {gastosFiltrados.map((g) => (
             <li
               key={g.id}
-              className="bg-white p-4 rounded-2xl shadow hover:shadow-lg transition flex justify-between items-center"
+              className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between"
             >
-              <div className="space-y-1">
-                <p className="font-semibold">{g.descricao}</p>
+              <div className="flex items-center gap-3">
+                {/* Ícone dinâmico */}
+                {(() => {
+                  const categoria = getCategoriaInfo(g.categoria);
 
-                <div className="flex gap-2 flex-wrap">
-                  <span className={`text-xs px-2 py-1 rounded-full ${getMetodoCor(g.metodo)}`}>
-                    {g.metodo}
-                  </span>
+                  return (
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${categoria?.cor}`}
+                    >
+                      <span className="text-xs font-bold">
+                        {g.categoria?.charAt(0)}
+                      </span>
+                    </div>
+                  );
+                })()}
 
-                  <span className={`text-xs px-2 py-1 rounded-full ${getCategoriaCor(g.categoria)}`}>
-                    {g.categoria}
-                  </span>
+                {/* Info */}
+                <div>
+                  <p className="font-semibold text-sm">{g.descricao}</p>
 
-                  <span className="text-xs text-gray-500">{g.pessoa}</span>
+                  <p className="text-sm opacity-70 text-gray-400">
+                    {g.pessoa} • {g.data}
+                  </p>
                 </div>
-
-                <p className="text-xs text-gray-400">{g.data}</p>
               </div>
 
+              {/* Valor */}
               <div className="text-right">
-                <p className="text-red-500 font-bold text-lg">
-                  R$ {g.valor.toFixed(2)}
+                <p className="text-red-500 font-bold text-sm">
+                  - R$ {g.valor.toFixed(2)}
                 </p>
 
                 <button
                   onClick={() => removerGasto(g.id)}
-                  className="text-gray-400 hover:text-red-500 transition text-sm mt-1"
+                  className="text-gray-300 hover:text-red-500 text-xs"
                 >
-                  🗑️
+                  remover
                 </button>
               </div>
             </li>
           ))}
         </ul>
-
       </div>
     </div>
   );
