@@ -5,5 +5,6 @@ export const categorias = [
   { nome: "Transporte", cor: "bg-blue-100 text-blue-600" },
   { nome: "Combustível", cor: "bg-red-100 text-red-600" },
   { nome: "Roupa", cor: "bg-pink-100 text-pink-600" },
+  { nome: "Eventos", cor: "bg-pink-100 text-pink-600" },
   { nome: "Outros", cor: "bg-gray-100 text-gray-600" },
 ];
