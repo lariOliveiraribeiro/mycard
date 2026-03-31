@@ -1,7 +1,7 @@
 {
   "name": "mycard",
   "version": "0.0.0",
-  "homepage": "https://github.com/lariOliveiraribeiro/mycard.git",
+  "homepage": "https://lariOliveiraribeiro.github.io/mycard",
   "type": "module",
   "scripts": {
     "dev": "vite",
