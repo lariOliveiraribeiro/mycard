@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import FormGasto from "../components/FormGasto";
 import {
   salvarGastos,
@@ -11,7 +11,6 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Users } from "lucide-react";
 import Graficos from "../components/Graficos";
 import { categorias } from "../data/categoria";
-import { useRef, useEffect } from "react";
 
 function Home() {
   const [gastos, setGastos] = useState([]);
