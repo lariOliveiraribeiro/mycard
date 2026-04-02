@@ -18,7 +18,7 @@ function Home() {
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [filtro, setFiltro] = useState("");
   const [mes, setMes] = useState("");
-  const [pessoaSelecionada, setPessoaSelecionada] = useState("");
+  const [pessoaSelecionada, setPessoaSelecionada] = useState(null);
   const [mostrarFiltroPessoa, setMostrarFiltroPessoa] = useState(false);
 
   useEffect(() => {
@@ -34,20 +34,27 @@ function Home() {
     salvarGastos(gastos);
   }, [gastos]);
 
-  function adicionarPessoa(nome) {
-    setPessoas((prev) => [...prev, nome]);
-  }
-
-  function removerPessoa(index) {
-    setPessoas((prev) => prev.filter((_, i) => i !== index));
+  function removerPessoa(id) {
+    setPessoas((prev) => prev.filter((p) => p.id !== id));
     setPessoaSelecionada("");
   }
 
-  function editarPessoa(index) {
+  function adicionarPessoa(nome) {
+    const novaPessoa = {
+      id: Date.now(),
+      nome,
+    };
+
+    setPessoas((prev) => [...prev, novaPessoa]);
+  }
+
+  function editarPessoa(id) {
     const novoNome = prompt("Novo nome:");
     if (!novoNome) return;
 
-    setPessoas((prev) => prev.map((p, i) => (i === index ? novoNome : p)));
+    setPessoas((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, nome: novoNome } : p)),
+    );
   }
 
   function adicionarGasto(gasto) {
@@ -59,8 +66,7 @@ function Home() {
   }
 
   const gastosFiltrados = gastos.filter((g) => {
-    const filtroPessoa =
-      !filtro || g.pessoa.trim().toLowerCase() === filtro.trim().toLowerCase();
+    const filtroPessoa = !filtro || g.pessoaId === Number(filtro);
 
     const filtroMes = !mes || g.data.startsWith(mes);
     const filtroCategoria = !categoriaFiltro || g.categoria === categoriaFiltro;
@@ -114,7 +120,10 @@ function Home() {
             <div className="mt-1 text-center">
               <p className="text-xs opacity-70">Saldo Total</p>
               <h2 className="text-4xl font-bold tracking-tight">
-                R$ {total.toFixed(2)}
+                {total.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </h2>
             </div>
           </div>
@@ -127,11 +136,16 @@ function Home() {
             className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl text-sm"
           >
             <Users className="w-4 h-4 text-gray-500" />
-            <span>{filtro || "Pessoas"}</span>
+            <span>
+              {pessoas.find((p) => p.id === Number(filtro))?.nome || "Pessoas"}
+            </span>
           </button>
 
           {mostrarFiltroPessoa && (
-            <div className="absolute mt-2 w-48 bg-white rounded-2xl shadow-lg p-2 z-50">
+            <div
+              onMouseLeave={() => setMostrarFiltroPessoa(false)}
+              className="absolute mt-2 w-48 bg-white rounded-2xl shadow-lg p-2 z-50"
+            >
               <button
                 onClick={() => {
                   setFiltro("");
@@ -146,14 +160,14 @@ function Home() {
                 <button
                   key={i}
                   onClick={() => {
-                    setFiltro(p);
+                    setFiltro(p.id);
                     setMostrarFiltroPessoa(false);
                   }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                    filtro === p ? "bg-purple-100" : "hover:bg-gray-100"
+                    filtro === p.id ? "bg-purple-100" : "hover:bg-gray-100"
                   }`}
                 >
-                  {p}
+                  {p.nome}
                 </button>
               ))}
             </div>
@@ -173,22 +187,20 @@ function Home() {
           {/* MINI MENU DA PESSOA */}
           {pessoaSelecionada && (
             <div className="bg-gray-50 px-3 py-2 rounded-xl flex justify-between items-center mt-2 text-sm">
-              <span>{pessoaSelecionada}</span>
+              <span>
+                {pessoas.find((p) => p.id === pessoaSelecionada)?.nome}
+              </span>
 
               <div className="flex gap-2">
                 <button
-                  onClick={() =>
-                    editarPessoa(pessoas.indexOf(pessoaSelecionada))
-                  }
+                  onClick={() => editarPessoa(pessoaSelecionada)}
                   className="text-blue-500"
                 >
                   <Pencil className="w-4 h-4 text-blue-500" />
                 </button>
 
                 <button
-                  onClick={() =>
-                    removerPessoa(pessoas.indexOf(pessoaSelecionada))
-                  }
+                  onClick={() => removerPessoa(pessoaSelecionada)}
                   className="text-red-500"
                 >
                   <Trash2 className="w-4 h-4 text-red-500" />
@@ -221,7 +233,9 @@ function Home() {
             >
               <option value="">Pessoa</option>
               {pessoas.map((p, i) => (
-                <option key={i}>{p}</option>
+                <option key={p.id} value={p.id}>
+                  {p.nome}
+                </option>
               ))}
             </select>
 
@@ -241,52 +255,59 @@ function Home() {
 
         {/* LISTA */}
         <ul className="space-y-2">
-          {gastosFiltrados.map((g) => (
-            <li
-              key={g.id}
-              className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                {/* Ícone dinâmico */}
-                {(() => {
-                  const categoria = getCategoriaInfo(g.categoria);
+          {gastosFiltrados.map((g) => {
+            const pessoaObj = pessoas.find((p) => p.id === g.pessoaId);
 
-                  return (
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${categoria?.cor}`}
-                    >
-                      <span className="text-xs font-bold">
-                        {g.categoria?.charAt(0)}
-                      </span>
-                    </div>
-                  );
-                })()}
+            return (
+              <li
+                key={g.id}
+                className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Ícone */}
+                  {(() => {
+                    const categoria = getCategoriaInfo(g.categoria);
 
-                {/* Info */}
-                <div>
-                  <p className="font-semibold text-sm">{g.descricao}</p>
+                    return (
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${categoria?.cor}`}
+                      >
+                        <span className="text-xs font-bold">
+                          {g.categoria?.charAt(0)}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
-                  <p className="text-sm opacity-70 text-gray-400">
-                    {g.pessoa} • {g.data}
-                  </p>
+                  {/* Info */}
+                  <div>
+                    <p className="font-semibold text-sm">{g.descricao}</p>
+
+                    <p className="text-sm opacity-70 text-gray-400">
+                      {pessoaObj?.nome} • {g.data}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Valor */}
-              <div className="text-right">
-                <p className="text-red-500 font-bold text-sm">
-                  - R$ {g.valor.toFixed(2)}
-                </p>
+                {/* Valor */}
+                <div className="text-right">
+                  <p className="text-red-500 font-bold text-sm">
+                    {g.valor.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </p>
 
-                <button
-                  onClick={() => removerGasto(g.id)}
-                  className="text-gray-300 hover:text-red-500 text-xs"
-                >
-                  remover
-                </button>
-              </div>
-            </li>
-          ))}
+                  <button
+                    onClick={() => removerGasto(g.id)}
+                    className="text-gray-300 hover:text-red-500 text-xs"
+                  >
+                    remover
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
