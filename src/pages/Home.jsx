@@ -11,6 +11,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Users } from "lucide-react";
 import Graficos from "../components/Graficos";
 import { categorias } from "../data/categoria";
+import { useRef, useEffect } from "react";
 
 function Home() {
   const [gastos, setGastos] = useState([]);
@@ -20,6 +21,7 @@ function Home() {
   const [mes, setMes] = useState("");
   const [pessoaSelecionada, setPessoaSelecionada] = useState(null);
   const [mostrarFiltroPessoa, setMostrarFiltroPessoa] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     setPessoas(carregarPessoas());
@@ -33,6 +35,22 @@ function Home() {
   useEffect(() => {
     salvarGastos(gastos);
   }, [gastos]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setMostrarFiltroPessoa(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   function removerPessoa(id) {
     setPessoas((prev) => prev.filter((p) => p.id !== id));
@@ -130,7 +148,7 @@ function Home() {
         </div>
 
         {/* FILTRO DE PESSOA */}
-        <div className="relative">
+        <div ref={dropdownRef} className="relative">
           <button
             onClick={() => setMostrarFiltroPessoa(!mostrarFiltroPessoa)}
             className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl text-sm"
