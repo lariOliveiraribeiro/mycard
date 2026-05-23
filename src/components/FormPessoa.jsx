@@ -14,7 +14,7 @@ function FormPessoa({ onAdd }) {
       return;
     }
 
-    onAdd(nomeLimpo);
+    onAdd({ nome: nomeLimpo });
     setNome("");
   }
 
