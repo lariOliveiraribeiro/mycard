@@ -1,40 +1,79 @@
 import { useEffect, useState, useRef } from "react";
 import FormGasto from "../components/FormGasto";
-import {
-  salvarGastos,
-  carregarGastos,
-  salvarPessoas,
-  carregarPessoas,
-} from "../services/storage";
 import FormPessoa from "../components/FormPessoa";
 import { Pencil, Trash2 } from "lucide-react";
 import { Users } from "lucide-react";
 import Graficos from "../components/Graficos";
 import { categorias } from "../data/categoria";
+import api from "../services/api";
 
 function Home() {
-  const [gastos, setGastos] = useState([]);
   const [pessoas, setPessoas] = useState([]);
+  const [gastos, setGastos] = useState([]);
+
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [filtro, setFiltro] = useState("");
   const [mes, setMes] = useState("");
   const [pessoaSelecionada, setPessoaSelecionada] = useState(null);
   const [mostrarFiltroPessoa, setMostrarFiltroPessoa] = useState(false);
+
   const dropdownRef = useRef(null);
 
+  // 🔥 CARREGAR DADOS DO BACKEND
   useEffect(() => {
-    setPessoas(carregarPessoas());
-    setGastos(carregarGastos());
+    carregarPessoas();
   }, []);
 
-  useEffect(() => {
-    salvarPessoas(pessoas);
-  }, [pessoas]);
+  async function carregarPessoas() {
+    try {
+      const response = await api.get("/pessoas");
+      setPessoas(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar pessoas", error);
+    }
+  }
 
-  useEffect(() => {
-    salvarGastos(gastos);
-  }, [gastos]);
+  // 🔥 CRUD PESSOAS
+  async function adicionarPessoa(pessoa) {
+    try {
+      await api.post("/pessoas", pessoa);
+      carregarPessoas();
+    } catch (error) {
+      console.error("Erro ao adicionar pessoa:", error);
+      alert("Erro ao cadastrar pessoa");
+    }
+  }
 
+  async function deletarPessoa(id) {
+    try {
+      await api.delete(`/pessoas/${id}`);
+      carregarPessoas();
+    } catch (error) {
+      console.error("Erro ao deletar pessoa:", error);
+      alert("Erro ao deletar pessoa");
+    }
+  }
+
+  async function atualizarPessoa(id, pessoa) {
+    try {
+      await api.put(`/pessoas/${id}`, pessoa);
+      carregarPessoas();
+    } catch (error) {
+      console.error("Erro ao atualizar pessoa:", error);
+      alert("Erro ao atualizar pessoa");
+    }
+  }
+
+  // ⚠️ GASTOS ainda local (próximo passo é backend)
+  function adicionarGasto(gasto) {
+    setGastos((prev) => [gasto, ...prev]);
+  }
+
+  function removerGasto(id) {
+    setGastos((prev) => prev.filter((g) => g.id !== id));
+  }
+
+  // 👇 FECHAR DROPDOWN
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -51,62 +90,16 @@ function Home() {
     };
   }, []);
 
-  function removerPessoa(id) {
-    setPessoas((prev) => prev.filter((p) => p.id !== id));
-    setPessoaSelecionada("");
-  }
-
-  function adicionarPessoa(nome) {
-    const novaPessoa = {
-      id: Date.now(),
-      nome,
-    };
-
-    setPessoas((prev) => [...prev, novaPessoa]);
-  }
-
-  function editarPessoa(id) {
-    const novoNome = prompt("Novo nome:");
-    if (!novoNome) return;
-
-    setPessoas((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, nome: novoNome } : p)),
-    );
-  }
-
-  function adicionarGasto(gasto) {
-    setGastos((prev) => [gasto, ...prev]);
-  }
-
-  function removerGasto(id) {
-    setGastos((prev) => prev.filter((g) => g.id !== id));
-  }
-
+  // 🔍 FILTROS
   const gastosFiltrados = gastos.filter((g) => {
     const filtroPessoa = !filtro || g.pessoaId === Number(filtro);
-
     const filtroMes = !mes || g.data.startsWith(mes);
     const filtroCategoria = !categoriaFiltro || g.categoria === categoriaFiltro;
-
-    function getCategoriaInfo(nome) {
-      return categorias.find((c) => c.nome === nome);
-    }
 
     return filtroPessoa && filtroMes && filtroCategoria;
   });
 
   const total = gastosFiltrados.reduce((acc, g) => acc + g.valor, 0);
-
-  function getCategoriaCor(nome) {
-    const categoria = categorias.find((c) => c.nome === nome);
-    return categoria?.cor || "bg-gray-100 text-gray-700";
-  }
-
-  function getMetodoCor(metodo) {
-    return metodo === "Pix"
-      ? "bg-green-100 text-green-700"
-      : "bg-purple-100 text-purple-700";
-  }
 
   function getCategoriaInfo(nome) {
     return categorias.find((c) => c.nome === nome);
