@@ -102,6 +102,7 @@ http://localhost:5173
 * LocalStorage
 * Git + GitHub
 * GitHub Pages
+* GitHub Actions (CI/CD)
 
 ---
 
