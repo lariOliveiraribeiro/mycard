@@ -17,7 +17,6 @@ function Graficos({ gastos }) {
     );
   }
 
-  // 🔹 AGRUPAR POR CATEGORIA
   const categorias = {};
 
   gastos.forEach((g) => {
@@ -32,7 +31,6 @@ function Graficos({ gastos }) {
     value: categorias[cat],
   }));
 
-  // 🔹 AGRUPAR POR MÊS
   const meses = {};
 
   gastos.forEach((g) => {
@@ -57,7 +55,6 @@ function Graficos({ gastos }) {
     <div className="bg-white p-4 rounded-3xl shadow-sm space-y-4">
       <h3 className="text-sm font-semibold">Análise de Gastos</h3>
 
-      {/* 🔵 GRÁFICO DE PIZZA */}
       <div className="w-full h-52">
         <ResponsiveContainer>
           <PieChart>
@@ -73,7 +70,6 @@ function Graficos({ gastos }) {
         </ResponsiveContainer>
       </div>
 
-      {/* 🟣 GRÁFICO DE BARRA */}
       <div className="w-full h-52">
         <ResponsiveContainer>
           <BarChart data={dadosBarra}>

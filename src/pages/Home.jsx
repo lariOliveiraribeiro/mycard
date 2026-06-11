@@ -19,7 +19,6 @@ function Home() {
 
   const dropdownRef = useRef(null);
 
-  // 🔥 CARREGAR DADOS DO BACKEND
   useEffect(() => {
     carregarPessoas();
   }, []);
@@ -33,7 +32,6 @@ function Home() {
     }
   }
 
-  // 🔥 CRUD PESSOAS
   async function adicionarPessoa(pessoa) {
     try {
       await api.post("/pessoas", pessoa);
@@ -64,7 +62,6 @@ function Home() {
     }
   }
 
-  // ⚠️ GASTOS ainda local (próximo passo é backend)
   function adicionarGasto(gasto) {
     setGastos((prev) => [gasto, ...prev]);
   }
@@ -73,7 +70,6 @@ function Home() {
     setGastos((prev) => prev.filter((g) => g.id !== id));
   }
 
-  // 👇 FECHAR DROPDOWN
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -90,7 +86,6 @@ function Home() {
     };
   }, []);
 
-  // 🔍 FILTROS
   const gastosFiltrados = gastos.filter((g) => {
     const filtroPessoa = !filtro || g.pessoaId === Number(filtro);
     const filtroMes = !mes || g.data.startsWith(mes);
@@ -139,7 +134,6 @@ function Home() {
           </div>
         </div>
 
-        {/* FILTRO DE PESSOA */}
         <div ref={dropdownRef} className="relative">
           <button
             onClick={() => setMostrarFiltroPessoa(!mostrarFiltroPessoa)}
@@ -184,7 +178,6 @@ function Home() {
           )}
         </div>
 
-        {/* FORM */}
         <div className="bg-white p-4 rounded-3xl shadow-sm">
           <FormPessoa onAdd={adicionarPessoa} />
 
@@ -194,7 +187,6 @@ function Home() {
             onSelectPessoa={setPessoaSelecionada}
           />
 
-          {/* MINI MENU DA PESSOA */}
           {pessoaSelecionada && (
             <div className="bg-gray-50 px-3 py-2 rounded-xl flex justify-between items-center mt-2 text-sm">
               <span>
@@ -220,7 +212,6 @@ function Home() {
           )}
         </div>
 
-        {/* FILTROS */}
         <div className="bg-white p-4 rounded-3xl shadow-sm">
           <h3 className="text-sm font-semibold mb-3">Filtros</h3>
 
@@ -263,7 +254,6 @@ function Home() {
 
         <Graficos gastos={gastosFiltrados} />
 
-        {/* LISTA */}
         <ul className="space-y-2">
           {gastosFiltrados.map((g) => {
             const pessoaObj = pessoas.find((p) => p.id === g.pessoaId);
@@ -274,7 +264,6 @@ function Home() {
                 className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  {/* Ícone */}
                   {(() => {
                     const categoria = getCategoriaInfo(g.categoria);
 
@@ -289,7 +278,6 @@ function Home() {
                     );
                   })()}
 
-                  {/* Info */}
                   <div>
                     <p className="font-semibold text-sm">{g.descricao}</p>
 
@@ -299,7 +287,6 @@ function Home() {
                   </div>
                 </div>
 
-                {/* Valor */}
                 <div className="text-right">
                   <p className="text-red-500 font-bold text-sm">
                     {g.valor.toLocaleString("pt-BR", {
